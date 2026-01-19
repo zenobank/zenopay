@@ -18,7 +18,7 @@ Zeno Crypto Checkout for Easy Digital Downloads lets your store receive crypto p
 
 
 See exactly what your customers will experience at checkout:  
-[Try checkout demo](https://pay.zenobank.io/demo)
+[Try the checkout demo](https://pay.zenobank.io/demo)
 
 Questions? Check the [FAQs](https://zenobank.io/#faqs)  
 Or reach out through [Telegram](https://t.me/zenobank)
