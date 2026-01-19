@@ -1,0 +1,396 @@
+# ---- CakePHP ----
+# CakePHP 3
+
+/vendor/*
+/config/app.php
+
+/tmp/cache/models/*
+!/tmp/cache/models/empty
+/tmp/cache/persistent/*
+!/tmp/cache/persistent/empty
+/tmp/cache/views/*
+!/tmp/cache/views/empty
+/tmp/sessions/*
+!/tmp/sessions/empty
+/tmp/tests/*
+!/tmp/tests/empty
+
+/logs/*
+!/logs/empty
+
+# CakePHP 2
+
+/app/tmp/*
+/app/Config/core.php
+/app/Config/database.php
+/vendors/*
+
+# ---- VisualStudioCode ----
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# ---- macOS ----
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ---- Prestashop ----
+# Cache, temp and personal files
+
+/.htaccess
+*.log
+
+# Cache
+/cache/*
+!/cache/.htaccess
+!/cache/cachefs/index.php
+!/cache/deprecated.txt
+!/cache/index.php
+!/cache/purifier/index.php
+!/cache/push/activity
+!/cache/push/index.php
+!/cache/push/trends
+!/cache/sandbox/index.php
+!/cache/smarty/cache/index.php
+!/cache/smarty/compile/index.php
+!/cache/smarty/index.php
+!/cache/tcpdf/index.php
+
+# Download
+/download/*
+!/download/.htaccess
+!/download/index.php
+
+# Images
+/img/*
+!/img/.htaccess
+!/img/index.php
+!/img/404.gif
+!/img/bg_500.png
+!/img/bg_loader.png
+!/img/favicon.ico
+!/img/loader.gif
+!/img/loadingAnimation.gif
+!/img/logo.jpg
+!/img/logo.png
+!/img/logo_invoice.jpg
+!/img/logo_stores.png
+!/img/macFFBgHack.png
+!/img/prestashop-avatar.png
+!/img/prestashop@2x.png
+!/img/preston-login-wink@2x.png
+!/img/preston-login@2x.png
+!/img/questionmark.png
+!/img/genders/index.php
+!/img/admin/index.php
+!/img/c/index.php
+!/img/cms/index.php
+!/img/co/index.php
+!/img/jquery-ui
+!/img/l/index.php
+!/img/m/index.php
+!/img/os/index.php
+!/img/p/index.php
+!/img/s/index.php
+!/img/scenes
+!/img/st/index.php
+!/img/su/index.php
+!/img/t/index.php
+!/img/tmp/index.php
+
+# Upload
+/upload/*
+!/upload/.htaccess
+
+/vendor/*
+/docs/phpdoc-sf/
+/composer.lock
+*.hot-update.js
+*.hot-update.json
+
+
+/admin-dev/autoupgrade/*
+!/admin-dev/autoupgrade/index.php
+!/admin-dev/autoupgrade/backup/index.php
+
+/admin-dev/backups/*
+!/admin-dev/backups/.htaccess
+
+/admin-dev/import/*
+!/admin-dev/import/.htaccess
+!/admin-dev/import/index.php
+
+/admin-dev/export/*
+!/admin-dev/export/.htaccess
+!/admin-dev/export/index.php
+
+# Downloaded RTL files
+/admin-dev/themes/default/css/bundle/default_rtl.css
+/admin-dev/themes/default/css/bundle/shared_rtl.css
+/admin-dev/themes/default/css/font_rtl.css
+/admin-dev/themes/default/css/overrides_rtl.css
+/admin-dev/themes/default/css/vendor/font-awesome/font-awesome_rtl.css
+/admin-dev/themes/default/css/vendor/nv.d3_rtl.css
+/admin-dev/themes/default/css/vendor/titatoggle-min_rtl.css
+/admin-dev/themes/default/public/theme_rtl.css
+/admin-dev/themes/new-theme/css/module/drop_rtl.css
+/admin-dev/themes/new-theme/css/right-sidebar_rtl.css
+
+themes/*/cache/*
+
+# Config
+
+config/settings.inc.php
+config/settings.old.php
+config/xml/*
+config/themes/*
+!config/xml/themes/default.xml
+themes/*/config/settings_*.json
+app/config/parameters.old.yml
+app/config/config.php
+
+# Themes, modules and overrides
+
+modules/*
+override/*
+themes/*/
+!themes/classic
+!themes/_core
+!themes/_libraries
+
+# Vendors and dependencies
+
+bower_components/
+node_modules/
+composer.phar
+php-cs-fixer
+.grunt/*
+
+# Translations and emails templates
+
+translations/*
+mails/*
+!mails/themes/
+!mails/_partials/
+themes/default-bootstrap/lang/*
+themes/default-bootstrap/modules/*/translations/*.php
+themes/default-bootstrap/mails/*
+!themes/default-bootstrap/mails/en/
+themes/default-bootstrap/modules/*/mails/*
+!themes/default-bootstrap/modules/*/mails/en
+
+# MISC
+
+*sitemap.xml
+/robots.txt
+
+# Symfony
+
+/bin/
+/app/Resources/geoip/GeoLite2-City.mmdb
+/app/Resources/translations/*
+!/app/Resources/translations/default
+/app/config/parameters.yml
+/app/config/parameters.php
+/build/
+/phpunit.xml
+/var/*
+!/var/cache
+/var/cache/*
+!var/cache/.gitkeep
+!/var/logs
+/var/logs/*
+!var/logs/.gitkeep
+!/var/sessions
+/var/sessions/*
+!var/sessions/.gitkeep
+!var/SymfonyRequirements.php
+/vendor/
+/web/bundles/
+
+
+# ---- WordPress ----
+# Wordpress - ignore core, configuration, examples, uploads and logs.
+# https://github.com/github/gitignore/blob/main/WordPress.gitignore
+
+# Core
+#
+# Note: if you want to stage/commit WP core files
+# you can delete this whole section/until Configuration.
+/wp-admin/
+/wp-content/index.php
+/wp-content/languages
+/wp-content/plugins/index.php
+/wp-content/themes/index.php
+/wp-includes/
+/index.php
+/license.txt
+/readme.html
+/wp-*.php
+/xmlrpc.php
+
+# Configuration
+wp-config.php
+
+# Example themes
+/wp-content/themes/twenty*/
+
+# Example plugin
+/wp-content/plugins/hello.php
+
+# Uploads
+/wp-content/uploads/
+
+# Log files
+*.log
+
+# htaccess
+/.htaccess
+
+# All plugins
+#
+# Note: If you wish to whitelist plugins,
+# uncomment the next line
+#/wp-content/plugins
+
+# All themes
+#
+# Note: If you wish to whitelist themes,
+# uncomment the next line
+#/wp-content/themes
+# ---- Magento1 ----
+# gitignore template for Magento v1 projects
+#
+# It is recommended that you use `Magento.gitignore` as this is the latest version
+
+/PATCH_*.sh
+
+/app/etc/local.xml
+
+/media/*
+!/media/.htaccess
+
+!/media/customer
+/media/customer/*
+!/media/customer/.htaccess
+
+!/media/dhl
+/media/dhl/*
+!/media/dhl/logo.jpg
+
+!/media/downloadable
+/media/downloadable/*
+!/media/downloadable/.htaccess
+
+!/media/xmlconnect
+/media/xmlconnect/*
+
+!/media/xmlconnect/custom
+/media/xmlconnect/custom/*
+!/media/xmlconnect/custom/ok.gif
+
+!/media/xmlconnect/original
+/media/xmlconnect/original/*
+!/media/xmlconnect/original/ok.gif
+
+!/media/xmlconnect/system
+/media/xmlconnect/system/*
+!/media/xmlconnect/system/ok.gif
+
+/var/*
+!/var/.htaccess
+
+!/var/package
+/var/package/*
+!/var/package/*.xml
+
+
+# ---- Magento2 ----
+/sitemap
+/sitemap.xml
+/pub/sitemap
+/pub/sitemap.xml
+/app/config_sandbox
+/app/etc/config.php
+/app/etc/env.php
+/app/code/Magento/TestModule*
+/lib/internal/flex/uploader/.actionScriptProperties
+/lib/internal/flex/uploader/.flexProperties
+/lib/internal/flex/uploader/.project
+/lib/internal/flex/uploader/.settings
+/lib/internal/flex/varien/.actionScriptProperties
+/lib/internal/flex/varien/.flexLibProperties
+/lib/internal/flex/varien/.project
+/lib/internal/flex/varien/.settings
+/.grunt
+/.php_cs.cache
+/grunt-config.json
+/dev/tools/grunt/configs/local-themes.js
+
+/pub/media/*.*
+!/pub/media/.htaccess
+/pub/media/attribute/*
+!/pub/media/attribute/.htaccess
+/pub/media/analytics/*
+/pub/media/catalog/*
+!/pub/media/catalog/.htaccess
+/pub/media/customer/*
+!/pub/media/customer/.htaccess
+/pub/media/downloadable/*
+!/pub/media/downloadable/.htaccess
+/pub/media/favicon/*
+/pub/media/import/*
+!/pub/media/import/.htaccess
+/pub/media/logo/*
+/pub/media/theme/*
+/pub/media/theme_customization/*
+!/pub/media/theme_customization/.htaccess
+/pub/media/wysiwyg/*
+!/pub/media/wysiwyg/.htaccess
+/pub/media/tmp/*
+!/pub/media/tmp/.htaccess
+/pub/media/captcha/*
+!/pub/media/captcha/.htaccess
+/pub/static/*
+!/pub/static/.htaccess
+
+/var/*
+!/var/.htaccess
+/vendor/*
+!/vendor/.htaccess
+/generated/*
+!/generated/.htaccess
