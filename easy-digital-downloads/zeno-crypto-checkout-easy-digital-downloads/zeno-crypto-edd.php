@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Zeno Crypto Checkout for Easy Digital Downloads
  * Description: Accept Crypto Payments in USDT and USDC across Ethereum, BNB Chain, Arbitrum, Base, Polygon, Solana, and Binance Pay
@@ -11,23 +12,23 @@
  * Requires Plugins: easy-digital-downloads
  */
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
-define( 'ZCEDD_VERSION', '1.0.0' );
-define( 'ZCEDD_API_ENDPOINT', 'https://api.zenobank.io' );
-define( 'ZCEDD_GATEWAY_ID', 'zcpg' );
-define( 'ZCEDD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'ZCEDD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define('ZCEDD_VERSION', '1.0.0');
+define('ZCEDD_API_ENDPOINT', 'https://api.zenobank.io');
+define('ZCEDD_GATEWAY_ID', 'zcpg');
+define('ZCEDD_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('ZCEDD_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 add_action(
 	'plugins_loaded',
 	function () {
-		if ( ! class_exists( 'Easy_Digital_Downloads' ) ) {
+		if (! class_exists('Easy_Digital_Downloads')) {
 			add_action(
 				'admin_notices',
 				function () {
 					echo '<div class="notice notice-error"><p>';
-					esc_html_e( 'Zeno Crypto Checkout requires Easy Digital Downloads to be installed and active.', 'zeno-crypto-edd' );
+					esc_html_e('Zeno Crypto Checkout requires Easy Digital Downloads to be installed and active.', 'zeno-crypto-checkout-for-easy-digital-downloads');
 					echo '</p></div>';
 				}
 			);
@@ -49,13 +50,13 @@ register_activation_hook(
 	__FILE__,
 	function () {
 		$option_key = 'edd_settings';
-		$settings   = get_option( $option_key, array() );
+		$settings   = get_option($option_key, array());
 
-		if ( empty( $settings['zc_edd_secret_live'] ) ) {
-			$settings['zc_edd_secret_live'] = wp_generate_password( 32, false, false );
+		if (empty($settings['zc_edd_secret_live'])) {
+			$settings['zc_edd_secret_live'] = wp_generate_password(32, false, false);
 		}
 
-		update_option( $option_key, $settings );
+		update_option($option_key, $settings);
 	}
 );
 
@@ -63,11 +64,11 @@ register_activation_hook(
  * Plugin action links (Settings).
  */
 add_filter(
-	'plugin_action_links_' . plugin_basename( __FILE__ ),
-	function ( $links ) {
-		$settings_url  = admin_url( 'edit.php?post_type=download&page=edd-settings&tab=gateways&section=zcpg' );
-		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'zeno-crypto-edd' ) . '</a>';
-		array_unshift( $links, $settings_link );
+	'plugin_action_links_' . plugin_basename(__FILE__),
+	function ($links) {
+		$settings_url  = admin_url('edit.php?post_type=download&page=edd-settings&tab=gateways&section=zcpg');
+		$settings_link = '<a href="' . esc_url($settings_url) . '">' . esc_html__('Settings', 'zeno-crypto-checkout-for-easy-digital-downloads') . '</a>';
+		array_unshift($links, $settings_link);
 		return $links;
 	}
 );
