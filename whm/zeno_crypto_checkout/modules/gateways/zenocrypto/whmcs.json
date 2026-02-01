@@ -1,0 +1,28 @@
+{
+  "schema": "1.0",
+  "type": "whmcs-gateways",
+  "name": "zenocrypto",
+  "category": "payments",
+  "description": {
+    "name": "Zeno Crypto Gateway",
+    "tagline": "Connect your WHMCS store to Zeno Bank"
+  },
+  "logo": {
+    "filename": "logo.png"
+  },
+  "support": {
+    "homepage": "https://zenobank.io/",
+    "docs_url": "https://docs.zenobank.io",
+    "email": "hello@zenobank.io"
+  },
+  "authors": [
+    {
+      "name": "Anurag Rathore",
+      "homepage": "https://www.whmcshunk.com/"
+    },
+    {
+      "name": "Zeno Bank",
+      "homepage": "https://zenobank.io/"
+    }
+  ]
+}
