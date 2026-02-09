@@ -78,12 +78,41 @@ class ZCPG_Gateway extends WC_Payment_Gateway
                 'type'    => 'textarea',
                 'default' => __('Pay with Crypto', 'zeno-crypto-payment-gateway'),
             ),
+            'advanced_title' => array(
+                'title'       => __('Advanced', 'zeno-crypto-payment-gateway'),
+                'type'        => 'title',
+                'description' => __('Advanced status and logo settings.', 'zeno-crypto-payment-gateway'),
+            ),
             'success_order_status' => array(
                 'title'       => __('Order status after successful payment', 'zeno-crypto-payment-gateway'),
                 'type'        => 'select',
                 'description' => __('Choose the WooCommerce order status to apply when the payment has been completed successfully. Default is Processing.', 'zeno-crypto-payment-gateway'),
                 'default'     => 'processing',
                 'options'     => $this->get_available_order_statuses(),
+            ),
+            'expired_order_status' => array(
+                'title'       => __('Order status when checkout expires', 'zeno-crypto-payment-gateway'),
+                'type'        => 'select',
+                'description' => __('Choose the order status to apply when the checkout expires. If not configured, WooCommerce default order status will be used (no change).', 'zeno-crypto-payment-gateway'),
+                'default'     => '',
+                'options'     => array_merge(
+                    array(
+                        '' => __('Use WooCommerce default (no change)', 'zeno-crypto-payment-gateway'),
+                    ),
+                    $this->get_available_order_statuses()
+                ),
+            ),
+            'initiated_order_status' => array(
+                'title'       => __('Order status when payment is initiated', 'zeno-crypto-payment-gateway'),
+                'type'        => 'select',
+                'description' => __('Choose the order status to apply when the customer initiates the payment (clicks Pay with Zeno). If not configured, Pending will be used.', 'zeno-crypto-payment-gateway'),
+                'default'     => 'default',
+                'options'     => array_merge(
+                    array(
+                        'default' => __('Use plugin default (Pending)', 'zeno-crypto-payment-gateway'),
+                    ),
+                    $this->get_available_order_statuses()
+                ),
             ),
             'test_mode'    => array(
                 'title'       => __('Test mode', 'zeno-crypto-payment-gateway'),
@@ -220,6 +249,34 @@ class ZCPG_Gateway extends WC_Payment_Gateway
     }
 
     /**
+     * Get the configured order status to apply when checkout expires.
+     *
+     * Returns empty string when no change should be applied.
+     *
+     * @return string
+     */
+    public function get_expired_order_status(): string
+    {
+        $status = (string) $this->get_option('expired_order_status', '');
+
+        if ('' === $status) {
+            // Use WooCommerce default behaviour (no explicit status change).
+            return '';
+        }
+
+        $available = $this->get_available_order_statuses();
+        if (! isset($available[$status])) {
+            return '';
+        }
+
+        if (0 === strpos($status, 'wc-')) {
+            $status = substr($status, 3);
+        }
+
+        return $status;
+    }
+
+    /**
      * Available order statuses for settings dropdown.
      *
      * @return array
@@ -278,6 +335,34 @@ class ZCPG_Gateway extends WC_Payment_Gateway
             default:
                 return $default_logo;
         }
+    }
+
+    /**
+     * Get the configured status to use when payment is initiated.
+     *
+     * If set to "default" or invalid, falls back to "pending" to preserve
+     * previous behaviour.
+     *
+     * @return string
+     */
+    public function get_initiated_order_status(): string
+    {
+        $setting = (string) $this->get_option('initiated_order_status', 'default');
+
+        if ('default' === $setting || '' === $setting) {
+            return 'pending';
+        }
+
+        $available = $this->get_available_order_statuses();
+        if (! isset($available[$setting])) {
+            return 'pending';
+        }
+
+        if (0 === strpos($setting, 'wc-')) {
+            $setting = substr($setting, 3);
+        }
+
+        return $setting;
     }
 
     private function has_valid_api_key(): bool
@@ -344,7 +429,12 @@ class ZCPG_Gateway extends WC_Payment_Gateway
             return array('result' => 'failure');
         }
 
-        $order->update_status('pending', esc_html__('Waiting for payment in Crypto Gateway', 'zeno-crypto-payment-gateway'));
+        $initiated_status = $this->get_initiated_order_status();
+
+        $order->update_status(
+            $initiated_status,
+            esc_html__('Waiting for payment in Crypto Gateway', 'zeno-crypto-payment-gateway')
+        );
 
         update_post_meta($order_id, '_zcpg_payment_url', esc_url_raw($payment_url));
 
