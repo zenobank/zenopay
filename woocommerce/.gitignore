@@ -1,4 +1,5 @@
 node_modules/
-svn-plugin/
+.svn/
 *.zip
 .DS_Store
+.svn/*
