@@ -1,6 +1,6 @@
 /**
  * Deploy script for Zeno Crypto Payment Gateway WooCommerce plugin.
- * Validates the plugin and publishes to WordPress.org SVN and an external directory.
+ * Validates the plugin and publishes to WordPress.org SVN.
  */
 
 import { execSync } from "node:child_process";
@@ -32,10 +32,13 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 const JUNK_PATTERNS = [".DS_Store", "Thumbs.db"];
 
+type DeployMode = "release" | "trunk" | "assets";
+
 // Paths derived from script location (ESM)
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = resolve(__dirname, "..");
 const SVN_DIR = resolve(ROOT_DIR, "svn-plugin");
+const SVN_ASSETS = resolve(SVN_DIR, "assets");
 const PLUGIN_DIR = resolve(SVN_DIR, "trunk");
 const MAIN_PHP = resolve(PLUGIN_DIR, PLUGIN_FILE);
 const README = resolve(PLUGIN_DIR, "readme.txt");
@@ -74,17 +77,42 @@ function closeRL() {
   rl = null;
 }
 
-async function confirm(question: string): Promise<boolean> {
+async function prompt(question: string): Promise<string> {
   return new Promise((res) => {
-    getRL().question(`${colors.yellow("?")} ${question} [y/N] `, (answer) => {
-      res(answer.trim().toLowerCase() === "y");
+    getRL().question(`${colors.yellow("?")} ${question} `, (answer) => {
+      res(answer.trim());
     });
   });
+}
+
+async function confirm(question: string): Promise<boolean> {
+  const answer = await prompt(`${question} [y/N]`);
+  return answer.toLowerCase() === "y";
 }
 
 async function confirmOrExit(question: string): Promise<void> {
   if (!(await confirm(question))) {
     fatal("Aborted by user.");
+  }
+}
+
+async function chooseMode(): Promise<DeployMode> {
+  console.log(colors.bold("\n  What do you want to deploy?\n"));
+  console.log("    1) " + colors.green("release") + "  — trunk + assets + version tag (full release)");
+  console.log("    2) " + colors.cyan("trunk") + "    — trunk + assets only (no tag)");
+  console.log("    3) " + colors.yellow("assets") + "   — assets only (banners, icons, screenshots)\n");
+
+  const answer = await prompt("Choose [1/2/3]:");
+
+  switch (answer) {
+    case "1":
+      return "release";
+    case "2":
+      return "trunk";
+    case "3":
+      return "assets";
+    default:
+      fatal(`Invalid choice: ${answer}`);
   }
 }
 
@@ -108,6 +136,7 @@ interface Options {
   force: boolean;
   noClean: boolean;
   endpoint: string;
+  mode: DeployMode | "";
 }
 
 function parseArgs(): Options {
@@ -119,25 +148,37 @@ function parseArgs(): Options {
     .option("-y, --force", "Skip interactive confirmations", false)
     .option("--no-clean", "Skip cleaning .DS_Store / Thumbs.db files")
     .option("--endpoint <url>", "Expected API endpoint", DEFAULT_ENDPOINT)
+    .option(
+      "--mode <mode>",
+      "Deploy mode: release (trunk+assets+tag), trunk (trunk+assets), assets (assets only)",
+      ""
+    )
     .parse();
 
   const opts = program.opts<{
     force: boolean;
     clean: boolean;
     endpoint: string;
+    mode: string;
   }>();
+
+  const mode = opts.mode as DeployMode | "";
+  if (mode && !["release", "trunk", "assets"].includes(mode)) {
+    fatal(`Invalid --mode: ${mode}. Use: release, trunk, or assets`);
+  }
 
   return {
     force: opts.force,
     noClean: !opts.clean,
     endpoint: opts.endpoint,
+    mode,
   };
 }
 
 // ── Deploy Steps ─────────────────────────────────────────────────────────────
 
-/** Step 1: Verify plugin directory, main PHP file, and readme.txt exist. */
-function step1_verifyFiles() {
+/** Verify plugin directory, main PHP file, and readme.txt exist. */
+function verifyFiles() {
   info("Verifying plugin structure...");
 
   if (!existsSync(PLUGIN_DIR) || !statSync(PLUGIN_DIR).isDirectory()) {
@@ -153,8 +194,8 @@ function step1_verifyFiles() {
   success("Plugin directory, main PHP file, and readme.txt all present.");
 }
 
-/** Step 2: Clean .DS_Store, ._*, and Thumbs.db from svn-plugin dir (trunk + assets). */
-function step2_clean() {
+/** Clean .DS_Store, ._*, and Thumbs.db from svn-plugin dir. */
+function cleanJunk() {
   info("Cleaning junk files from svn-plugin directory...");
   let removed = 0;
 
@@ -172,8 +213,8 @@ function step2_clean() {
   );
 }
 
-/** Step 3: Scan plugin text files for localhost references. */
-function step3_localhostCheck() {
+/** Scan plugin text files for localhost references. */
+function localhostCheck() {
   info("Scanning for localhost references...");
   const hits: string[] = [];
 
@@ -199,8 +240,8 @@ function step3_localhostCheck() {
   success("No localhost references found.");
 }
 
-/** Step 4: Extract ZCPG_API_ENDPOINT from PHP and verify it matches expected. */
-function step4_verifyEndpoint(expectedEndpoint: string) {
+/** Extract ZCPG_API_ENDPOINT from PHP and verify it matches expected. */
+function verifyEndpoint(expectedEndpoint: string) {
   info("Verifying API endpoint...");
 
   const content = readFileSync(MAIN_PHP, "utf-8");
@@ -229,8 +270,8 @@ function step4_verifyEndpoint(expectedEndpoint: string) {
   success(`API endpoint verified: ${actual}`);
 }
 
-/** Step 5: Interactive confirmations (skipped with --force). */
-async function step5_interactiveChecks() {
+/** Interactive confirmations (skipped with --force). */
+async function interactiveChecks() {
   info("Interactive checks...");
   await confirmOrExit(
     "Have you run the WordPress Plugin Checker and resolved all issues?"
@@ -241,8 +282,8 @@ async function step5_interactiveChecks() {
   success("Interactive checks passed.");
 }
 
-/** Step 6: Verify version consistency across readme.txt and main PHP file. Returns the version. */
-function step6_versionConsistency(): string {
+/** Verify version consistency across readme.txt and main PHP file. Returns the version. */
+function versionConsistency(): string {
   info("Checking version consistency...");
 
   const readmeContent = readFileSync(README, "utf-8");
@@ -289,19 +330,13 @@ function step6_versionConsistency(): string {
   return stableTag;
 }
 
-/** Step 7: Stage changes in trunk + assets, commit, and create a version tag in SVN. */
-async function step7_svnPublish(version: string, force: boolean) {
-  if (!existsSync(PLUGIN_DIR)) {
-    warn(`SVN trunk not found: ${PLUGIN_DIR}`);
-    warn("Run 'svn checkout' first. Skipping SVN publish.");
-    return;
-  }
+// ── SVN Operations ───────────────────────────────────────────────────────────
 
-  // Stage new/changed files across entire SVN working copy (trunk + assets)
-  info("Staging SVN changes (trunk + assets)...");
-  run("svn add --force trunk assets", SVN_DIR);
+/** Stage additions and removals for given SVN paths. */
+function svnStage(targets: string) {
+  info(`Staging SVN changes (${targets})...`);
+  run(`svn add --force ${targets}`, SVN_DIR);
 
-  // Remove missing files from SVN
   try {
     const status = execSync("svn status", {
       cwd: SVN_DIR,
@@ -322,18 +357,58 @@ async function step7_svnPublish(version: string, force: boolean) {
 
   // Show pending changes
   run("svn status", SVN_DIR);
+}
 
-  if (!force) {
-    const shouldPublish = await confirm(
-      `Publish version ${version} to WordPress.org SVN?`
-    );
-    if (!shouldPublish) {
-      info("Skipping SVN publish.");
-      return;
-    }
+/** Commit assets only. */
+async function svnCommitAssets(force: boolean) {
+  if (!existsSync(SVN_ASSETS)) {
+    fatal(`SVN assets directory not found: ${SVN_ASSETS}`);
   }
 
-  // Commit trunk + assets together
+  svnStage("assets");
+
+  if (!force) {
+    await confirmOrExit("Commit assets to WordPress.org SVN?");
+  }
+
+  info("Committing assets...");
+  run('svn commit assets -m "Update assets"', SVN_DIR);
+
+  success("Assets published to WordPress.org SVN.");
+}
+
+/** Commit trunk + assets without creating a tag. */
+async function svnCommitTrunk(force: boolean) {
+  if (!existsSync(PLUGIN_DIR)) {
+    fatal(`SVN trunk not found: ${PLUGIN_DIR}`);
+  }
+
+  svnStage("trunk assets");
+
+  if (!force) {
+    await confirmOrExit("Commit trunk + assets to WordPress.org SVN?");
+  }
+
+  info("Committing trunk and assets...");
+  run('svn commit trunk assets -m "Update trunk and assets"', SVN_DIR);
+
+  success("Trunk and assets published to WordPress.org SVN.");
+}
+
+/** Full release: commit trunk + assets, then create and commit a version tag. */
+async function svnRelease(version: string, force: boolean) {
+  if (!existsSync(PLUGIN_DIR)) {
+    fatal(`SVN trunk not found: ${PLUGIN_DIR}`);
+  }
+
+  svnStage("trunk assets");
+
+  if (!force) {
+    await confirmOrExit(
+      `Publish version ${version} to WordPress.org SVN?`
+    );
+  }
+
   info("Committing trunk and assets...");
   run(
     `svn commit trunk assets -m "Deploy version ${version}"`,
@@ -356,34 +431,46 @@ async function main() {
 
   console.log(colors.bold("\n--- Zeno Crypto Payment Gateway — Deploy ---\n"));
 
-  // Step 1: Verify files
-  step1_verifyFiles();
+  // Pick deploy mode
+  const mode: DeployMode = opts.mode
+    ? (opts.mode as DeployMode)
+    : await chooseMode();
 
-  // Step 2: Clean junk files
+  info(`Deploy mode: ${colors.bold(mode)}`);
+
+  // Clean junk files
   if (!opts.noClean) {
-    step2_clean();
+    cleanJunk();
   } else {
     info("Skipping junk file cleanup (--no-clean).");
   }
 
-  // Step 3: Localhost check
-  step3_localhostCheck();
+  // Assets-only: skip all plugin validation
+  if (mode === "assets") {
+    await svnCommitAssets(opts.force);
+    closeRL();
+    console.log(colors.bold(colors.green("\nDeploy complete.\n")));
+    return;
+  }
 
-  // Step 4: Verify API endpoint
-  step4_verifyEndpoint(opts.endpoint);
+  // Trunk & release: full validation
+  verifyFiles();
+  localhostCheck();
+  verifyEndpoint(opts.endpoint);
 
-  // Step 5: Interactive confirmations
   if (!opts.force) {
-    await step5_interactiveChecks();
+    await interactiveChecks();
   } else {
     info("Skipping interactive checks (--force).");
   }
 
-  // Step 6: Version consistency
-  const version = step6_versionConsistency();
+  const version = versionConsistency();
 
-  // Step 7: SVN publish
-  await step7_svnPublish(version, opts.force);
+  if (mode === "trunk") {
+    await svnCommitTrunk(opts.force);
+  } else {
+    await svnRelease(version, opts.force);
+  }
 
   closeRL();
   console.log(colors.bold(colors.green("\nDeploy complete.\n")));
