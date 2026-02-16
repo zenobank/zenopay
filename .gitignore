@@ -1,4 +1,9 @@
 
+node_modules/
+.svn/
+*.zip
+.DS_Store
+.svn/*
 
 # ---- CakePHP ----
 # CakePHP 3
@@ -399,3 +404,7 @@ wp-config.php
 
 # ---- Claude AI ----
 **/.claude/settings.local.json
+
+# ---- Turborepo ----
+.turbo/
+.pnpm-store/*

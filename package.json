@@ -1,0 +1,15 @@
+{
+  "name": "zenopay-plugins",
+  "private": true,
+  "packageManager": "pnpm@10.4.1",
+  "workspaces": [
+    "woocommerce"
+  ],
+  "scripts": {
+    "typecheck": "turbo run typecheck",
+    "plugin:deploy": "turbo run plugin:deploy --filter=zenopay-woocommerce-deploy"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.6"
+  }
+}
