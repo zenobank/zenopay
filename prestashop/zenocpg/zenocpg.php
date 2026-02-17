@@ -74,6 +74,7 @@ class Zenocpg extends PaymentModule
 
         $this->addOrderStateZenoWaiting('Awaiting ZENO payment');
         $this->addOrderStateZenoAccepted('ZENO payment accepted');
+        $this->addOrderStateZenoExpired('ZENO payment expired');
 
         require_once __DIR__ . '/sql/install.php';
 
@@ -95,6 +96,7 @@ class Zenocpg extends PaymentModule
         Configuration::deleteByName('ZENO_CPG_API_KEY');
         Configuration::deleteByName('ZENO_WAITING_PAYMENT');
         Configuration::deleteByName('ZENO_PAYMENT_ACCEPTED');
+        Configuration::deleteByName('ZENO_PAYMENT_EXPIRED');
 
         return parent::uninstall();
     }
@@ -416,6 +418,35 @@ class Zenocpg extends PaymentModule
             // Update object
             $order_state->add();
             Configuration::updateGlobalValue('ZENO_WAITING_PAYMENT', (int) $order_state->id);
+        }
+        return true;
+    }
+
+    public function addOrderStateZenoExpired($state_name)
+    {
+        $state_exist = false;
+        $states = OrderState::getOrderStates((int) $this->context->language->id);
+
+        foreach ($states as $state) {
+            if (in_array($state_name, $state)) {
+                $state_exist = true;
+                break;
+            }
+        }
+
+        if (!$state_exist) {
+            $order_state = new OrderState();
+            $order_state->color = '#DC143C';
+            $order_state->send_email = false;
+            $order_state->module_name = $this->name;
+            $order_state->template = [];
+            $order_state->name = [];
+            $languages = Language::getLanguages(false);
+            foreach ($languages as $language) {
+                $order_state->name[$language['id_lang']] = $state_name;
+            }
+            $order_state->add();
+            Configuration::updateGlobalValue('ZENO_PAYMENT_EXPIRED', (int) $order_state->id);
         }
         return true;
     }
