@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -o errexit
+# Generate a new local CA "/root/.local/share/mkcert"
+bin/docker-compose exec -T -u root app mkcert -install
+
+docker cp "$(bin/docker-compose ps -q app|awk '{print $1}')":/root/.local/share/mkcert/rootCA.pem .
+echo "System password requested to install certificate authority on host..."
+
+if [ "$(uname)" == "Darwin" ]; then
+  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain rootCA.pem
+  echo "{\"policies\": {\"Certificates\": {\"ImportEnterpriseRoots\": true}}}" | sudo tee policies.json
+
+  FIREFOX_FOUND=0
+  ### Check if Firefox is installed
+  for FFoxAppDir in \
+    '/Applications/Firefox.app' \
+    '/Applications/Firefox Developer Edition.app' \
+    ; do
+
+    FFoxBin=$FFoxAppDir/Contents/MacOS/firefox-bin
+    if [[ -f $FFoxBin ]]; then
+      printf 'Firefox compatible found at: %s\n' "$FFoxAppDir" >&2
+      FIREFOX_FOUND=1
+
+      ### Copy the newly created policies.json to the Certificates directory
+      DistDirectory=$FFoxAppDir/Contents/Resources/distribution
+      sudo mkdir -p "$DistDirectory"
+      sudo cp policies.json "$DistDirectory"/policies.json
+
+    fi
+  done
+
+  if [[ $FIREFOX_FOUND -ne 0 ]]; then
+    ### Copy the newly created .pem to the Certificates directory
+    CertDirectory='/Library/Application Support/Mozilla/Certificates'
+    printf 'Installing CA certificate to: %s\n' "$CertDirectory" >&2
+    sudo mkdir -p "$CertDirectory"
+    sudo cp rootCA.pem "$CertDirectory"/rootCA.pem
+  fi
+
+  rm -f policies.json rootCA.pem
+
+else
+
+  ### Requirement: apt install libnss3-tools
+  REQUIRED_PKG="libnss3-tools"
+  PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+  echo Checking for $REQUIRED_PKG: "$PKG_OK"
+  if [ "" = "$PKG_OK" ]; then
+    echo "No $REQUIRED_PKG found. Setting up $REQUIRED_PKG."
+    sudo apt-get --yes install $REQUIRED_PKG
+  fi
+
+  ### CA file to install (CUSTOMIZE!)
+  certfile="rootCA.pem"
+  certname="Root CA"
+
+  ### For cert8 (legacy - DBM)
+  find ~/ -name "cert8.db" -print0 | while read -r certDB
+  do
+      certdir=$(dirname "${certDB}");
+      certutil -D -n "${certname}" -i ${certfile} -d dbm:"${certdir}"
+      certutil -A -n "${certname}" -t "TCu,Cu,Tu" -i ${certfile} -d dbm:"${certdir}"
+  done
+
+  ### For cert9 (SQL)
+  find ~/ -name "cert9.db" -print0 | while read -r certDB
+  do
+      certdir=$(dirname "${certDB}");
+      certutil -D -n "${certname}" -i ${certfile} -d sql:"${certdir}"
+      certutil -A -n "${certname}" -t "TCu,Cu,Tu" -i ${certfile} -d sql:"${certdir}"
+  done
+
+  sudo mv rootCA.pem /usr/local/share/ca-certificates/rootCA.crt
+  sudo update-ca-certificates
+fi
