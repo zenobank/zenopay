@@ -35,8 +35,8 @@ add_action(
 			return;
 		}
 
-		require_once __DIR__ . '/includes/zc-edd-gateway.php';
-		require_once __DIR__ . '/includes/zc-edd-webhook.php';
+		require_once __DIR__ . '/includes/zcc-edd-gateway.php';
+		require_once __DIR__ . '/includes/zcc-edd-webhook.php';
 
 		znccedd_register_webhook_route();
 	},

@@ -41,7 +41,12 @@ function znccedd_handle_webhook(WP_REST_Request $request)
 		return new WP_REST_Response(array('ok' => false, 'error' => 'missing_order_or_token'), 400);
 	}
 
-	$expected_token = hash_hmac('sha256', (string) $order_id, edd_get_option('znccedd_secret_live', ''));
+	$secret = edd_get_option('znccedd_secret_live', '');
+	if (empty($secret)) {
+		return new WP_REST_Response(array('ok' => false, 'error' => 'secret_not_configured'), 500);
+	}
+
+	$expected_token = hash_hmac('sha256', (string) $order_id, $secret);
 
 	if (! hash_equals($expected_token, $received_token)) {
 		return new WP_REST_Response(array('ok' => false, 'error' => 'invalid_token'), 403);
@@ -52,14 +57,23 @@ function znccedd_handle_webhook(WP_REST_Request $request)
 		return new WP_REST_Response(array('ok' => false, 'error' => 'payment_not_found'), 404);
 	}
 
-	if ('COMPLETED' === strtoupper($status)) {
-		edd_update_payment_status($order_id, 'complete');
-		edd_insert_payment_note($order_id, __('Payment confirmed via Zeno webhook.', 'zeno-crypto-checkout-for-easy-digital-downloads'));
+	if ('COMPLETED' !== strtoupper($status)) {
+		return new WP_REST_Response(
+			array(
+				'ok'       => true,
+				'order_id' => $order_id,
+				'status'   => $status,
+			),
+			200
+		);
 	}
+
+	edd_update_payment_status($order_id, 'complete');
+	edd_insert_payment_note($order_id, __('Payment confirmed via Zeno webhook.', 'zeno-crypto-checkout-for-easy-digital-downloads'));
 
 	return new WP_REST_Response(
 		array(
-			'ok'      => true,
+			'ok'       => true,
 			'order_id' => $order_id,
 			'status'   => $status,
 		),
