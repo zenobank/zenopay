@@ -312,12 +312,7 @@ function znccedd_process_purchase($purchase_data)
 		edd_get_success_page_uri()
 	);
 
-	$webhook_url = add_query_arg(
-		array(
-			'order_id' => (int) $payment_id,
-		),
-		rest_url('znccedd/v1/webhook')
-	);
+	$webhook_url = rest_url('znccedd/v1/webhook');
 
 	$payload = array(
 		'version'            => ZNCCEDD_VERSION,

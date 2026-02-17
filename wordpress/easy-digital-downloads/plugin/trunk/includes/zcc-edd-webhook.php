@@ -33,9 +33,9 @@ function znccedd_handle_webhook(WP_REST_Request $request)
 		$body = array();
 	}
 
-	$order_id        = (int) ($body['data']['orderId'] ?? $request->get_param('order_id') ?? 0);
-	$received_token  = isset($body['data']['verificationToken']) ? sanitize_text_field($body['data']['verificationToken']) : sanitize_text_field((string) $request->get_param('verification_token'));
-	$status          = isset($body['data']['status']) ? sanitize_text_field($body['data']['status']) : sanitize_text_field((string) $request->get_param('status'));
+	$order_id        = (int) ($body['data']['orderId'] ?? 0);
+	$received_token  = isset($body['data']['verificationToken']) ? sanitize_text_field($body['data']['verificationToken']) : '';
+	$status          = isset($body['data']['status']) ? sanitize_text_field($body['data']['status']) : '';
 
 	if (empty($order_id) || empty($received_token)) {
 		return new WP_REST_Response(array('ok' => false, 'error' => 'missing_order_or_token'), 400);
