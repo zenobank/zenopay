@@ -1,0 +1,13 @@
+{
+  "intelephense.environment.includePaths": [
+    "${workspaceFolder}/prestashop/ide-core/prestashop-core/classes",
+    "${workspaceFolder}/prestashop/ide-core/prestashop-core/src",
+    "${workspaceFolder}/prestashop/ide-core/prestashop-core/config"
+  ],
+  "intelephense.files.exclude": [
+    "**/.git/**",
+    "**/node_modules/**"
+  ],
+  "intelephense.diagnostics.undefinedTypes": false,
+  "intelephense.diagnostics.undefinedConstants": false
+}

@@ -193,20 +193,20 @@ class Zenocpg extends PaymentModule
                 'input' => [
                     [
                         'type' => 'switch',
-                        'label' => $this->l('Enable/Disable'),
+                        'label' => $this->l('Zeno Gateway'),
                         'name' => 'ZENO_CPG_LIVE_MODE',
                         'is_bool' => true,
-                        'desc' => $this->l('Enable Zeno Gateway'),
+                        'desc' => $this->l('When active, the Zeno crypto payment option will be shown at checkout.'),
                         'values' => [
                             [
                                 'id' => 'active_on',
                                 'value' => true,
-                                'label' => $this->l('Enabled'),
+                                'label' => $this->l('Active'),
                             ],
                             [
                                 'id' => 'active_off',
                                 'value' => false,
-                                'label' => $this->l('Disabled'),
+                                'label' => $this->l('Inactive'),
                             ],
                         ],
                     ],
@@ -262,7 +262,7 @@ class Zenocpg extends PaymentModule
         return [
             'ZENO_CPG_LIVE_MODE' => Configuration::get('ZENO_CPG_LIVE_MODE', null),
             'ZENO_CPG_TITLE' => Configuration::get('ZENO_CPG_TITLE', null),
-            'ZENO_CPG_DESCRIPTION' => Configuration::get('ZENO_CPG_DESCRIPTION', null),
+            'ZENO_CPG_DESCRIPTION' => Configuration::get('ZENO_CPG_DESCRIPTION',null),
             'ZENO_CPG_API_KEY' => '************',
         ];
     }

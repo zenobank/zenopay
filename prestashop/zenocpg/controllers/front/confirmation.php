@@ -31,73 +31,71 @@ class ZenocpgConfirmationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        if (isset($_GET['cart_id'])) {
-            $id_cart = $_GET['cart_id'];
+        if (!isset($_GET['cart_id'])) {
+            Tools::redirect('index.php?controller=order');
+            return;
+        }
 
-            $query_find = 'SELECT id_zeno_payment  FROM `' . _DB_PREFIX_ . _ZENO_DB_TABLE_ . '` WHERE id_cart = ' . $id_cart;
-            $cart_ids = Db::getInstance()->getValue($query_find);
+        $id_cart = (int) $_GET['cart_id'];
+        $cart = new Cart($id_cart);
 
-            if ($cart_ids != '') {
-                $headers = [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                ];
+        if (!Validate::isLoadedObject($cart)) {
+            Tools::redirect('index.php?controller=order');
+            return;
+        }
 
-                $zeno_api_url = ZCPG_API_ENDPOINT . '/api/v1/checkouts/' . $cart_ids;
+        $id_customer = $cart->id_customer;
+        $customer = new Customer($id_customer);
+        $secure_key = $customer->secure_key;
+        $id_order = Order::getIdByCartId($id_cart);
 
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_URL, $zeno_api_url);
-                curl_setopt($ch, CURLOPT_POST, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_FAILONERROR, true);
-                curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                $response = curl_exec($ch);
+        if (!$id_order) {
+            Tools::redirect('index.php?controller=order');
+            return;
+        }
 
-                // Check for errors
-                if (curl_errno($ch)) {
-                    echo 'Error:' . curl_error($ch);
-                    echo 'Error connecting with the gateway';
-                }
-                curl_close($ch);
+        $query_find = 'SELECT id_zeno_payment FROM `' . _DB_PREFIX_ . _ZENO_DB_TABLE_ . '` WHERE id_cart = ' . $id_cart;
+        $id_zeno_payment = Db::getInstance()->getValue($query_find);
 
+        if ($id_zeno_payment) {
+            $headers = [
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ];
+
+            $zeno_api_url = ZCPG_API_ENDPOINT . '/api/v1/checkouts/' . $id_zeno_payment;
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_URL, $zeno_api_url);
+            curl_setopt($ch, CURLOPT_POST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_FAILONERROR, true);
+            curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            if ($response) {
                 $body = json_decode($response, true);
-                $payment_url = isset($body['checkoutUrl']) ? (string) $body['checkoutUrl'] : '';
                 $order_status_back = isset($body['status']) ? (string) $body['status'] : '';
-                $id_zeno_payment = isset($body['id']) ? (string) $body['id'] : '';
-
-                $cart = new Cart((int) $id_cart);
-                $id_currency = $cart->id_currency;
-                $amount = $cart->getOrderTotal(true, Cart::BOTH);
-                $id_customer = $cart->id_customer;
-                $customer = new Customer($id_customer);
-                $secure_key = $customer->secure_key;
-                $payment_status = (int) Configuration::getGlobalValue('ZENO_WAITING_PAYMENT');
-
-                $this->module->validateOrder(
-                    (int) $id_cart,
-                    $payment_status,
-                    (float) $amount,
-                    $this->module->displayName,
-                    null,
-                    [],
-                    (int) $id_currency,
-                    false,
-                    $secure_key);
-
-                $id_order = Order::getIdByCartId((int) $id_cart);
-
-                $pr_order_status_complete = (int) Configuration::get('ZENO_PAYMENT_ACCEPTED');
-                if (!$pr_order_status_complete) {
-                    $pr_order_status_complete = (int) Configuration::get('PS_OS_PAYMENT');
-                }
 
                 if ($order_status_back == 'COMPLETED') {
+                    $pr_order_status_complete = (int) Configuration::get('ZENO_PAYMENT_ACCEPTED');
+                    if (!$pr_order_status_complete) {
+                        $pr_order_status_complete = (int) Configuration::get('PS_OS_PAYMENT');
+                    }
                     $this->order_complete_status((int) $id_order, $pr_order_status_complete);
                 }
             }
         }
+
+        Tools::redirect(
+            'index.php?controller=order-confirmation&id_cart=' . $id_cart
+            . '&id_module=' . $this->module->id
+            . '&id_order=' . $id_order
+            . '&key=' . $secure_key
+        );
     }
 
     public function order_complete_status($id_order, $pr_order_status_complete)

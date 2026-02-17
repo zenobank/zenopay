@@ -411,5 +411,8 @@ wp-config.php
 # ---- pnpm local store ----
 /.pnpm-store/
 /.pnpm-store/v10/
+
+# ---- Local IDE Prestashop core cache ----
+/prestashop/ide-core/
 .pnpm-store/*
 .claude/*

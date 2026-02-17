@@ -47,7 +47,7 @@ class ZenocpgRedirectModuleFrontController extends ModuleFrontController
 
         $payment_status = (int) Configuration::getGlobalValue('ZENO_WAITING_PAYMENT');
 
-        /*$this->module->validateOrder(
+        $this->module->validateOrder(
             (int) $id_cart,
             $payment_status,
             (float) $amount,
@@ -56,9 +56,9 @@ class ZenocpgRedirectModuleFrontController extends ModuleFrontController
             [],
             (int) $id_currency,
             false,
-            $secure_key);*/
+            $secure_key);
 
-        // $id_order = Order::getIdByCartId((int) $id_cart);
+        $id_order = Order::getIdByCartId((int) $id_cart);
         $verification_token = hash_hmac('sha256', (string) $id_cart, $secure_key);
         /* echo $id_order." - ".$id_currency." - ".$amount." - ".$secure_key." - ".$currency." - ".$version." - ".$verification_token; */
         $success_url = $this->context->link->getModuleLink($this->module->name, 'confirmation', ['cart_id' => $id_cart], true);
