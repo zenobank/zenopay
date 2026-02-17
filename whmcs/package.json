@@ -1,0 +1,14 @@
+{
+  "name": "zenopay-whmcs-plugin",
+  "private": true,
+  "version": "1.0.0",
+  "description": "WHMCS plugin",
+  "scripts": {
+    "build:zip": "tsc && node dist/build.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "typescript": "^5.9.3"
+  }
+}
