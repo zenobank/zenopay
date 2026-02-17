@@ -16,17 +16,19 @@ use WHMCS\Database\Capsule;
  */
 function zenocrypto_MetaData()
 {
-    return array(
+    return [
         'DisplayName' => 'Zeno Crypto Gateway',
-        'APIVersion' => '1.1', // Use API Version 1.1
-    );
+        'APIVersion' => '1.1',
+    ];
 }
 
 /**
- * Ensure a secret key exists for webhook verification.
+ * Runs once when the module is activated.
+ * Creates the secret key and the checkouts cache table.
  */
-function zenocrypto_ensureSecretKey()
+function zenocrypto_activate()
 {
+    // Generate secret key for webhook verification
     $existing = Capsule::table('tblpaymentgateways')
         ->where('gateway', 'zenocrypto')
         ->where('setting', 'secret_key')
@@ -46,39 +48,8 @@ function zenocrypto_ensureSecretKey()
             'value'   => encrypt($uuid),
         ]);
     }
-}
 
-/**
- * Define gateway configuration options.
- */
-function zenocrypto_config()
-{
-    try {
-        zenocrypto_ensureSecretKey();
-    } catch (\Exception $e) {
-        // Silently fail during gateway discovery
-    }
-
-    return array(
-        'FriendlyName' => array(
-            'Type' => 'System',
-            'Value' => 'Zeno Crypto Gateway',
-        ),
-        'api_key' => array(
-            'FriendlyName' => 'API Key',
-            'Type' => 'password',
-            'Size' => '40',
-            'Default' => '',
-            'Description' => '<a href="https://dashboard.zenobank.io/" target="_blank">Get your API key here</a>',
-        ),
-    );
-}
-
-/**
- * Ensure the checkouts cache table exists.
- */
-function zenocrypto_ensureCheckoutsTable()
-{
+    // Create checkouts cache table
     if (!Capsule::schema()->hasTable('mod_zenocrypto_checkouts')) {
         Capsule::schema()->create('mod_zenocrypto_checkouts', function ($table) {
             $table->unsignedInteger('invoice_id')->primary();
@@ -88,6 +59,34 @@ function zenocrypto_ensureCheckoutsTable()
             $table->timestamp('created_at')->useCurrent();
         });
     }
+}
+
+/**
+ * Runs once when the module is deactivated.
+ */
+function zenocrypto_deactivate()
+{
+    Capsule::schema()->dropIfExists('mod_zenocrypto_checkouts');
+}
+
+/**
+ * Define gateway configuration options.
+ */
+function zenocrypto_config()
+{
+    return [
+        'FriendlyName' => [
+            'Type' => 'System',
+            'Value' => 'Zeno Crypto Gateway',
+        ],
+        'api_key' => [
+            'FriendlyName' => 'API Key',
+            'Type' => 'password',
+            'Size' => '40',
+            'Default' => '',
+            'Description' => '<a href="https://dashboard.zenobank.io/" target="_blank">Get your API key here</a>',
+        ],
+    ];
 }
 
 /**
@@ -103,14 +102,7 @@ function zenocrypto_link($params)
 
     $secretKey = $params['secret_key'];
     if (empty($secretKey)) {
-        zenocrypto_ensureSecretKey();
-        $secretKey = Capsule::table('tblpaymentgateways')
-            ->where('gateway', 'zenocrypto')
-            ->where('setting', 'secret_key')
-            ->value('value');
-    }
-    if (empty($secretKey)) {
-        return '<div class="alert alert-danger">Gateway misconfigured: missing secret key.</div>';
+        return '<div class="alert alert-danger">Gateway misconfigured: missing secret key. Try deactivating and reactivating the module.</div>';
     }
     $secretKey = decrypt($secretKey);
 
@@ -128,7 +120,6 @@ function zenocrypto_link($params)
 
     // Check for a cached checkout URL for this invoice
     try {
-        zenocrypto_ensureCheckoutsTable();
         $cached = Capsule::table('mod_zenocrypto_checkouts')
             ->where('invoice_id', $invoiceId)
             ->first();
@@ -176,12 +167,11 @@ function zenocrypto_link($params)
         CURLOPT_HTTPHEADER => [
             "Content-Type: application/json",
             "X-API-Key: $apiKey",
-            // Client metadata headers
             "X-Client-Type: plugin",
             "X-Client-Name: zeno-whmcs",
-            "X-Client-Version: 1.0.0",          // e.g. 1.0.0
+            "X-Client-Version: 1.0.0",
             "X-Client-Platform: whmcs",
-            "X-Client-Platform-Version: " . $whmcsVersion   // e.g. 8.8.0
+            "X-Client-Platform-Version: $whmcsVersion"
         ],
     ]);
 
@@ -196,7 +186,7 @@ function zenocrypto_link($params)
     }
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        logTransaction('zenocrypto', $response, 'API error HTTP ' . $httpCode);
+        logTransaction('zenocrypto', $response, "API error HTTP $httpCode");
         return '<div class="alert alert-danger">Payment gateway returned an error (HTTP ' . $httpCode . '). Please try again.</div>';
     }
 
