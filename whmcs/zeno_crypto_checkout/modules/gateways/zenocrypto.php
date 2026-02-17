@@ -43,7 +43,7 @@ function zenocrypto_ensureSecretKey()
         Capsule::table('tblpaymentgateways')->insert([
             'gateway' => 'zenocrypto',
             'setting' => 'secret_key',
-            'value'   => $uuid,
+            'value'   => encrypt($uuid),
         ]);
     }
 }
@@ -71,11 +71,6 @@ function zenocrypto_config()
             'Default' => '',
             'Description' => '<a href="https://dashboard.zenobank.io/" target="_blank">Get your API key here</a>',
         ),
-        'support_info' => array(
-            'FriendlyName' => 'Support',
-            'Type' => 'System',
-            'Value' => '<a href="https://zenobank.io/support" target="_blank">Have suggestions, problems, or want a new feature? Contact us</a>',
-        ),
     );
 }
 
@@ -101,6 +96,7 @@ function zenocrypto_link($params)
     if (empty($secretKey)) {
         return '<div class="alert alert-danger">Gateway misconfigured: missing secret key.</div>';
     }
+    $secretKey = decrypt($secretKey);
 
     // Invoice Parameters
     $invoiceId = $params['invoiceid'];

@@ -79,6 +79,7 @@ if (empty($secretKey)) {
     http_response_code(500);
     exit('Gateway misconfigured: missing secret key');
 }
+$secretKey = decrypt($secretKey);
 
 $expectedToken = hash_hmac(
     'sha256',
