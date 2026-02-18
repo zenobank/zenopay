@@ -75,7 +75,6 @@ function zenocrypto_config()
             'Type' => 'password',
             'Size' => '40',
             'Default' => '',
-            'Description' => '<a href="https://dashboard.zenobank.io/" target="_blank">Get your API key here</a>',
         ],
     ];
 }
