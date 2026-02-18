@@ -1,0 +1,16 @@
+{
+  "name": "zenopay-edd-plugin",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Easy Digital Downloads plugin",
+  "scripts": {
+    "check": "tsx scripts/check.ts",
+    "build:zip": "tsc && node dist/build.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
