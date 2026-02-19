@@ -470,97 +470,84 @@ class Zenocpg extends PaymentModule
 
     public function addOrderStateZenoWaiting($state_name)
     {
-        $state_exist = false;
         $states = OrderState::getOrderStates((int) $this->context->language->id);
 
         // check if order state exist
         foreach ($states as $state) {
             if (in_array($state_name, $state)) {
-                $state_exist = true;
-                break;
+                Configuration::updateGlobalValue('ZENO_WAITING_PAYMENT', (int) $state['id_order_state']);
+                return true;
             }
         }
 
         // If the state does not exist, we create it.
-        if (!$state_exist) {
-            // create new order state
-            $order_state = new OrderState();
-            $order_state->color = '#34209E';
-            $order_state->send_email = false;
-            $order_state->module_name = $this->name;
-            $order_state->template = [];
-            $order_state->name = [];
-            $languages = Language::getLanguages(false);
-            foreach ($languages as $language) {
-                $order_state->name[$language['id_lang']] = $state_name;
-            }
-
-            // Update object
-            $order_state->add();
-            Configuration::updateGlobalValue('ZENO_WAITING_PAYMENT', (int) $order_state->id);
+        $order_state = new OrderState();
+        $order_state->color = '#34209E';
+        $order_state->send_email = false;
+        $order_state->module_name = $this->name;
+        $order_state->template = [];
+        $order_state->name = [];
+        $languages = Language::getLanguages(false);
+        foreach ($languages as $language) {
+            $order_state->name[$language['id_lang']] = $state_name;
         }
+
+        $order_state->add();
+        Configuration::updateGlobalValue('ZENO_WAITING_PAYMENT', (int) $order_state->id);
         return true;
     }
 
     public function addOrderStateZenoExpired($state_name)
     {
-        $state_exist = false;
         $states = OrderState::getOrderStates((int) $this->context->language->id);
 
         foreach ($states as $state) {
             if (in_array($state_name, $state)) {
-                $state_exist = true;
-                break;
+                Configuration::updateGlobalValue('ZENO_PAYMENT_EXPIRED', (int) $state['id_order_state']);
+                return true;
             }
         }
 
-        if (!$state_exist) {
-            $order_state = new OrderState();
-            $order_state->color = '#DC143C';
-            $order_state->send_email = false;
-            $order_state->module_name = $this->name;
-            $order_state->template = [];
-            $order_state->name = [];
-            $languages = Language::getLanguages(false);
-            foreach ($languages as $language) {
-                $order_state->name[$language['id_lang']] = $state_name;
-            }
-            $order_state->add();
-            Configuration::updateGlobalValue('ZENO_PAYMENT_EXPIRED', (int) $order_state->id);
+        $order_state = new OrderState();
+        $order_state->color = '#DC143C';
+        $order_state->send_email = false;
+        $order_state->module_name = $this->name;
+        $order_state->template = [];
+        $order_state->name = [];
+        $languages = Language::getLanguages(false);
+        foreach ($languages as $language) {
+            $order_state->name[$language['id_lang']] = $state_name;
         }
+        $order_state->add();
+        Configuration::updateGlobalValue('ZENO_PAYMENT_EXPIRED', (int) $order_state->id);
         return true;
     }
 
     public function addOrderStateZenoAccepted($state_name)
     {
-        $state_exist = false;
         $states = OrderState::getOrderStates((int) $this->context->language->id);
 
         // check if order state exist
         foreach ($states as $state) {
             if (in_array($state_name, $state)) {
-                $state_exist = true;
-                break;
+                Configuration::updateGlobalValue('ZENO_PAYMENT_ACCEPTED', (int) $state['id_order_state']);
+                return true;
             }
         }
 
         // If the state does not exist, we create it.
-        if (!$state_exist) {
-            // create new order state
-            $order_state = new OrderState();
-            $order_state->color = '#3498D8';
-            $order_state->send_email = false;
-            $order_state->module_name = $this->name;
-            $order_state->template = [];
-            $order_state->name = [];
-            $languages = Language::getLanguages(false);
-            foreach ($languages as $language) {
-                $order_state->name[$language['id_lang']] = $state_name;
-            }
-            // Update object
-            $order_state->add();
-            Configuration::updateGlobalValue('ZENO_PAYMENT_ACCEPTED', (int) $order_state->id);
+        $order_state = new OrderState();
+        $order_state->color = '#3498D8';
+        $order_state->send_email = false;
+        $order_state->module_name = $this->name;
+        $order_state->template = [];
+        $order_state->name = [];
+        $languages = Language::getLanguages(false);
+        foreach ($languages as $language) {
+            $order_state->name[$language['id_lang']] = $state_name;
         }
+        $order_state->add();
+        Configuration::updateGlobalValue('ZENO_PAYMENT_ACCEPTED', (int) $order_state->id);
         return true;
     }
 }
