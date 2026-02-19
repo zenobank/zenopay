@@ -37,7 +37,7 @@ type DeployMode = "release" | "trunk" | "assets";
 // Paths derived from script location (ESM)
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = resolve(__dirname, "..");
-const SVN_DIR = resolve(ROOT_DIR, "svn-plugin");
+const SVN_DIR = resolve(ROOT_DIR, "plugin");
 const SVN_ASSETS = resolve(SVN_DIR, "assets");
 const PLUGIN_DIR = resolve(SVN_DIR, "trunk");
 const MAIN_PHP = resolve(PLUGIN_DIR, PLUGIN_FILE);
